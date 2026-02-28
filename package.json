@@ -1,6 +1,6 @@
 {
   "name": "vintasend-mailgun",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "author": "Gustavo Carvalho",
   "license": "MIT",
   "dependencies": {
-    "vintasend": "^0.8.1"
+    "vintasend": "^0.8.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
