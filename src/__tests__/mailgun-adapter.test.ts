@@ -1,9 +1,10 @@
 import { MailgunAdapter, MailgunAdapterFactory } from '../mailgun-adapter';
 import type { MailgunConfig } from '../mailgun-adapter';
+import { vi, type Mock } from 'vitest';
 
 const mockTemplateRenderer = {
-  render: jest.fn(),
-  injectLogger: jest.fn(),
+  render: vi.fn(),
+  injectLogger: vi.fn(),
 };
 
 const mailgunConfig: MailgunConfig = {
@@ -39,8 +40,8 @@ function createNotification(overrides = {}) {
 
 describe('MailgunAdapter', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn();
+    vi.clearAllMocks();
+    global.fetch = vi.fn() as any;
   });
 
   test('has correct key and notificationType', () => {
@@ -65,14 +66,14 @@ describe('MailgunAdapter', () => {
     });
 
     const mockResponse = { ok: true, status: 200 };
-    (fetch as jest.Mock).mockResolvedValue(mockResponse as Response);
+    (fetch as Mock).mockResolvedValue(mockResponse as Response);
 
     await adapter.send(notification as any, context);
 
     expect(mockTemplateRenderer.render).toHaveBeenCalledWith(notification, context);
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    const [url, options] = (fetch as jest.Mock).mock.calls[0];
+    const [url, options] = (fetch as Mock).mock.calls[0];
     expect(url).toBe(`https://api.mailgun.net/v3/${mailgunConfig.domain}/messages`);
 
     const expectedCredentials = btoa(`api:${mailgunConfig.apiKey}`);
@@ -99,11 +100,11 @@ describe('MailgunAdapter', () => {
     const notification = createNotification();
 
     mockTemplateRenderer.render.mockResolvedValue({ subject: 'Test', body: '<p>Hi</p>' });
-    (fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
+    (fetch as Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
 
     await adapter.send(notification as any, {});
 
-    const body = ((fetch as jest.Mock).mock.calls[0][1]?.body) as FormData;
+    const body = ((fetch as Mock).mock.calls[0][1]?.body) as FormData;
     expect(body.get('from')).toBe('noreply@example.com');
   });
 
@@ -116,11 +117,11 @@ describe('MailgunAdapter', () => {
     const notification = createNotification();
 
     mockTemplateRenderer.render.mockResolvedValue({ subject: 'Test', body: '<p>Hi</p>' });
-    (fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
+    (fetch as Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
 
     await adapter.send(notification as any, {});
 
-    const [url] = (fetch as jest.Mock).mock.calls[0];
+    const [url] = (fetch as Mock).mock.calls[0];
     expect(url).toBe(`https://api.eu.mailgun.net/v3/${euConfig.domain}/messages`);
   });
 
@@ -133,9 +134,9 @@ describe('MailgunAdapter', () => {
     const mockResponse = {
       ok: false,
       status: 401,
-      text: jest.fn().mockResolvedValue('Forbidden: Invalid API key'),
+      text: vi.fn().mockResolvedValue('Forbidden: Invalid API key'),
     };
-    (fetch as jest.Mock).mockResolvedValue(mockResponse as any);
+    (fetch as Mock).mockResolvedValue(mockResponse as any);
 
     await expect(adapter.send(notification as any, {})).rejects.toThrow(
       'Mailgun send failed (401): Forbidden: Invalid API key'
@@ -147,7 +148,7 @@ describe('MailgunAdapter', () => {
     const notification = createNotification();
 
     mockTemplateRenderer.render.mockResolvedValue({ subject: 'Test', body: '<p>Hi</p>' });
-    (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+    (fetch as Mock).mockRejectedValue(new Error('Network error'));
 
     await expect(adapter.send(notification as any, {})).rejects.toThrow('Network error');
   });
@@ -160,17 +161,17 @@ describe('MailgunAdapter', () => {
         {
           filename: 'report.pdf',
           contentType: 'application/pdf',
-          file: { read: jest.fn().mockResolvedValue(fileContent) },
+          file: { read: vi.fn().mockResolvedValue(fileContent) },
         },
       ],
     });
 
     mockTemplateRenderer.render.mockResolvedValue({ subject: 'Test', body: '<p>Hi</p>' });
-    (fetch as jest.Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
+    (fetch as Mock).mockResolvedValue({ ok: true, status: 200 } as Response);
 
     await adapter.send(notification as any, {});
 
-    const body = ((fetch as jest.Mock).mock.calls[0][1]?.body) as FormData;
+    const body = ((fetch as Mock).mock.calls[0][1]?.body) as FormData;
     const attachment = body.get('attachment') as File;
     expect(attachment).toBeTruthy();
     expect(attachment.name).toBe('report.pdf');
