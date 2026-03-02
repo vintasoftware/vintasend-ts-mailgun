@@ -1,9 +1,11 @@
+import type {
+  AnyDatabaseNotification,
+  BaseEmailTemplateRenderer,
+  BaseNotificationTypeConfig,
+  JsonObject,
+  StoredAttachment,
+} from 'vintasend';
 import { BaseNotificationAdapter } from 'vintasend';
-import type { BaseEmailTemplateRenderer } from 'vintasend';
-import type { JsonObject } from 'vintasend/dist/types/json-values';
-import type { AnyDatabaseNotification } from 'vintasend/dist/types/notification';
-import type { BaseNotificationTypeConfig } from 'vintasend/dist/types/notification-type-config';
-import type { StoredAttachment } from 'vintasend/dist/types/attachment';
 
 export interface MailgunConfig {
   apiKey: string;
@@ -24,7 +26,11 @@ export class MailgunAdapter<
   key: string | null = 'mailgun';
   private config: MailgunConfig;
 
-  constructor(templateRenderer: TemplateRenderer, enqueueNotifications: boolean, config: MailgunConfig) {
+  constructor(
+    templateRenderer: TemplateRenderer,
+    enqueueNotifications: boolean,
+    config: MailgunConfig,
+  ) {
     super(templateRenderer, 'EMAIL', enqueueNotifications);
     this.config = config;
   }
@@ -41,7 +47,9 @@ export class MailgunAdapter<
     const url = `${baseUrl}/v3/${this.config.domain}/messages`;
     const credentials = btoa(`api:${this.config.apiKey}`);
 
-    const from = this.config.fromName ? `${this.config.fromName} <${this.config.fromEmail}>` : this.config.fromEmail;
+    const from = this.config.fromName
+      ? `${this.config.fromName} <${this.config.fromEmail}>`
+      : this.config.fromEmail;
 
     const formData = new FormData();
     formData.append('from', from);
@@ -67,7 +75,10 @@ export class MailgunAdapter<
     }
   }
 
-  private async appendAttachments(formData: FormData, attachments: StoredAttachment[]): Promise<void> {
+  private async appendAttachments(
+    formData: FormData,
+    attachments: StoredAttachment[],
+  ): Promise<void> {
     for (const att of attachments) {
       const content = await att.file.read();
       const blob = new Blob([new Uint8Array(content)], { type: att.contentType });
@@ -80,7 +91,7 @@ export class MailgunAdapterFactory<Config extends BaseNotificationTypeConfig> {
   create<TemplateRenderer extends BaseEmailTemplateRenderer<Config>>(
     templateRenderer: TemplateRenderer,
     enqueueNotifications: boolean,
-    config: MailgunConfig
+    config: MailgunConfig,
   ): MailgunAdapter<TemplateRenderer, Config> {
     return new MailgunAdapter(templateRenderer, enqueueNotifications, config);
   }

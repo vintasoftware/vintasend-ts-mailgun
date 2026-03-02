@@ -1,6 +1,6 @@
-import { MailgunAdapter, MailgunAdapterFactory } from '../mailgun-adapter';
+import { type Mock, vi } from 'vitest';
 import type { MailgunConfig } from '../mailgun-adapter';
-import { vi, type Mock } from 'vitest';
+import { MailgunAdapter, MailgunAdapterFactory } from '../mailgun-adapter';
 
 const mockTemplateRenderer = {
   render: vi.fn(),
@@ -80,7 +80,7 @@ describe('MailgunAdapter', () => {
     expect(options?.headers).toEqual(
       expect.objectContaining({
         Authorization: `Basic ${expectedCredentials}`,
-      })
+      }),
     );
 
     const body = options?.body as FormData;
@@ -104,7 +104,7 @@ describe('MailgunAdapter', () => {
 
     await adapter.send(notification as any, {});
 
-    const body = ((fetch as Mock).mock.calls[0][1]?.body) as FormData;
+    const body = (fetch as Mock).mock.calls[0][1]?.body as FormData;
     expect(body.get('from')).toBe('noreply@example.com');
   });
 
@@ -139,7 +139,7 @@ describe('MailgunAdapter', () => {
     (fetch as Mock).mockResolvedValue(mockResponse as any);
 
     await expect(adapter.send(notification as any, {})).rejects.toThrow(
-      'Mailgun send failed (401): Forbidden: Invalid API key'
+      'Mailgun send failed (401): Forbidden: Invalid API key',
     );
   });
 
@@ -171,7 +171,7 @@ describe('MailgunAdapter', () => {
 
     await adapter.send(notification as any, {});
 
-    const body = ((fetch as Mock).mock.calls[0][1]?.body) as FormData;
+    const body = (fetch as Mock).mock.calls[0][1]?.body as FormData;
     const attachment = body.get('attachment') as File;
     expect(attachment).toBeTruthy();
     expect(attachment.name).toBe('report.pdf');
