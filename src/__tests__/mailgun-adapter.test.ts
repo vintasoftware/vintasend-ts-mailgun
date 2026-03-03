@@ -1,4 +1,4 @@
-import { type Mock, vi } from 'vitest';
+import { beforeEach, describe, expect, type Mock, test, vi } from 'vitest';
 import type { MailgunConfig } from '../mailgun-adapter';
 import { MailgunAdapter, MailgunAdapterFactory } from '../mailgun-adapter';
 
