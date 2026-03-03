@@ -1,1 +1,1 @@
-export { MailgunAdapter, MailgunAdapterFactory } from './mailgun-adapter';
+export { MailgunAdapter, MailgunAdapterFactory } from './mailgun-adapter.js';
