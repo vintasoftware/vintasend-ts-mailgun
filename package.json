@@ -1,6 +1,6 @@
 {
   "name": "vintasend-mailgun",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "description": "",
   "type": "module",
   "main": "dist/index.js",
@@ -20,7 +20,7 @@
   "author": "Gustavo Carvalho",
   "license": "MIT",
   "dependencies": {
-    "vintasend": "file:../../.."
+    "vintasend": "^0.13.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.5",
