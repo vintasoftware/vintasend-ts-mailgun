@@ -5,15 +5,15 @@ A VintaSend email notification adapter using [Mailgun](https://www.mailgun.com/)
 ## Installation
 
 ```bash
-npm install vintasend-mailgun mailgun.js form-data
+npm install vintasend-mailgun
 ```
 
 ## Configuration
 
 ```typescript
-import { MailgunNotificationAdapterFactory } from 'vintasend-mailgun';
+import { MailgunAdapterFactory } from 'vintasend-mailgun';
 
-const adapter = new MailgunNotificationAdapterFactory().create(
+const adapter = new MailgunAdapterFactory().create(
    templateRenderer,
    false, // enqueueNotifications
    {
@@ -33,6 +33,7 @@ interface MailgunConfig {
    domain: string;        // Mailgun domain
    fromEmail: string;     // Default sender email address
    fromName?: string;     // Optional sender name
+   baseUrl?: string;      // Optional Mailgun API base URL
 }
 ```
 
@@ -104,26 +105,55 @@ await notificationService.createOneOffNotification({
 - ✅ HTML email templates
 - ✅ Multiple attachments per email
 
-## API Reference
+## Provider interface
 
-### MailgunNotificationAdapterFactory
+The VintaSend adapter delegates email delivery to the provider-neutral `EmailProvider`
+interface. Mailgun is the implementation currently supplied by the factory, so another
+email provider can be added without changing the notification rendering flow.
 
 ```typescript
-class MailgunNotificationAdapterFactory<Config extends BaseNotificationTypeConfig>
+interface EmailProvider {
+   readonly supportsAttachments: boolean;
+   send(message: {
+      to: string;
+      subject: string;
+      html: string;
+      attachments?: Array<{
+         filename: string;
+         contentType: string;
+         content: Uint8Array;
+      }>;
+   }): Promise<void>;
+}
+```
+
+## API Reference
+
+### MailgunAdapterFactory
+
+```typescript
+class MailgunAdapterFactory<Config extends BaseNotificationTypeConfig>
 ```
 
 **Methods:**
 - `create<TemplateRenderer>(templateRenderer, enqueueNotifications, config)` - Create adapter instance
 
-### MailgunNotificationAdapter
+### MailgunAdapter
 
 **Properties:**
-- `key: string` - Returns `'mailgun'`
+- `key: string | null` - Returns `'mailgun'`
 - `notificationType: NotificationType` - Returns `'EMAIL'`
 - `supportsAttachments: boolean` - Returns `true`
 
 **Methods:**
-- `send(notification, context)` - Send an email with optional attachments
+- `send(notification, context): Promise<EmailTemplate>` - Render and send an email with optional attachments
+
+### MailgunEmailProvider
+
+The Mailgun provider implements `EmailProvider` and sends messages through the Mailgun REST API.
+
+**Methods:**
+- `send(message)` - Send a rendered email with optional attachments
 
 ## Environment Variables
 
@@ -132,6 +162,7 @@ MAILGUN_API_KEY=key-your-api-key-here
 MAILGUN_DOMAIN=mg.example.com
 FROM_EMAIL=noreply@example.com
 FROM_NAME=My Application
+MAILGUN_BASE_URL=https://api.mailgun.net
 ```
 
 ## License
