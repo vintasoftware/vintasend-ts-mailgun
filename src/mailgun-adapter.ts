@@ -7,37 +7,40 @@ import type {
   StoredAttachment,
 } from 'vintasend';
 import { BaseNotificationAdapter } from 'vintasend';
+import type { EmailAttachment, EmailProvider } from './email-provider.js';
+import { type MailgunConfig, MailgunEmailProvider } from './mailgun-provider.js';
 
-export interface MailgunConfig {
-  apiKey: string;
-  domain: string;
-  fromEmail: string;
-  fromName?: string;
-  baseUrl?: string;
-}
+export type { MailgunConfig } from './mailgun-provider.js';
 
-/**
- * Email adapter using the Mailgun REST API directly via fetch.
- * Avoids the mailgun.js npm package to keep Medplum bot bundles small.
- */
 export class MailgunAdapter<
   TemplateRenderer extends BaseEmailTemplateRenderer<Config>,
   Config extends BaseNotificationTypeConfig,
 > extends BaseNotificationAdapter<TemplateRenderer, Config> {
   key: string | null = 'mailgun';
-  private config: MailgunConfig;
+  private readonly emailProvider: EmailProvider;
 
   constructor(
     templateRenderer: TemplateRenderer,
     enqueueNotifications: boolean,
     config: MailgunConfig,
+  );
+  constructor(
+    templateRenderer: TemplateRenderer,
+    enqueueNotifications: boolean,
+    emailProvider: EmailProvider,
+  );
+  constructor(
+    templateRenderer: TemplateRenderer,
+    enqueueNotifications: boolean,
+    configOrProvider: MailgunConfig | EmailProvider,
   ) {
     super(templateRenderer, 'EMAIL', enqueueNotifications);
-    this.config = config;
+    this.emailProvider =
+      'send' in configOrProvider ? configOrProvider : new MailgunEmailProvider(configOrProvider);
   }
 
   get supportsAttachments(): boolean {
-    return true;
+    return this.emailProvider.supportsAttachments;
   }
 
   /**
@@ -50,50 +53,32 @@ export class MailgunAdapter<
   ): Promise<EmailTemplate> {
     const template = await this.templateRenderer.render(notification, context);
     const recipientEmail = await this.getRecipientEmail(notification);
+    const attachments = notification.attachments?.length
+      ? await this.readAttachments(notification.attachments)
+      : undefined;
 
-    const baseUrl = this.config.baseUrl ?? 'https://api.mailgun.net';
-    const url = `${baseUrl}/v3/${this.config.domain}/messages`;
-    const credentials = btoa(`api:${this.config.apiKey}`);
-
-    const from = this.config.fromName
-      ? `${this.config.fromName} <${this.config.fromEmail}>`
-      : this.config.fromEmail;
-
-    const formData = new FormData();
-    formData.append('from', from);
-    formData.append('to', recipientEmail);
-    formData.append('subject', template.subject);
-    formData.append('html', template.body);
-
-    if (notification.attachments && notification.attachments.length > 0) {
-      await this.appendAttachments(formData, notification.attachments);
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${credentials}`,
-      },
-      body: formData,
+    await this.emailProvider.send({
+      to: recipientEmail,
+      subject: template.subject,
+      html: template.body,
+      attachments,
     });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Mailgun send failed (${response.status}): ${errorBody}`);
-    }
 
     return template;
   }
 
-  private async appendAttachments(
-    formData: FormData,
-    attachments: StoredAttachment[],
-  ): Promise<void> {
-    for (const att of attachments) {
-      const content = await att.file.read();
-      const blob = new Blob([new Uint8Array(content)], { type: att.contentType });
-      formData.append('attachment', blob, att.filename);
+  private async readAttachments(attachments: StoredAttachment[]): Promise<EmailAttachment[]> {
+    const emailAttachments: EmailAttachment[] = [];
+
+    for (const attachment of attachments) {
+      emailAttachments.push({
+        filename: attachment.filename,
+        contentType: attachment.contentType,
+        content: await attachment.file.read(),
+      });
     }
+
+    return emailAttachments;
   }
 }
 
@@ -103,6 +88,10 @@ export class MailgunAdapterFactory<Config extends BaseNotificationTypeConfig> {
     enqueueNotifications: boolean,
     config: MailgunConfig,
   ): MailgunAdapter<TemplateRenderer, Config> {
-    return new MailgunAdapter(templateRenderer, enqueueNotifications, config);
+    return new MailgunAdapter(
+      templateRenderer,
+      enqueueNotifications,
+      new MailgunEmailProvider(config),
+    );
   }
 }
