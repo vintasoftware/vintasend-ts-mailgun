@@ -155,6 +155,30 @@ The Mailgun provider implements `EmailProvider` and sends messages through the M
 **Methods:**
 - `send(message)` - Send a rendered email with optional attachments
 
+### SendGridEmailProvider
+
+The SendGrid provider also implements `EmailProvider`, but is not wired into
+`MailgunAdapter` or `MailgunAdapterFactory`. It is available as a standalone implementation
+for the SendGrid migration.
+
+```typescript
+interface SendGridConfig {
+   apiKey: string;
+   fromEmail: string;
+   fromName?: string;
+   baseUrl?: string;
+   sandboxMode?: boolean;
+}
+```
+
+When `sandboxMode` is enabled, SendGrid validates and accepts the message without delivering it.
+Run the integration test with `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, and optionally
+`SENDGRID_TEST_RECIPIENT` configured in the environment:
+
+```bash
+npm run test:sendgrid:sandbox
+```
+
 ## Environment Variables
 
 ```bash
