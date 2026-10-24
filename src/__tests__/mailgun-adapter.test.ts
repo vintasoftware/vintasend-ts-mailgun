@@ -8,7 +8,7 @@ const mockTemplateRenderer = {
 };
 
 const mailgunConfig: MailgunConfig = {
-  apiKey: 'key-test123',
+  apiKey: 'x',
   domain: 'mg.example.com',
   fromEmail: 'noreply@example.com',
   fromName: 'Polaris Sleep',
@@ -92,7 +92,7 @@ describe('MailgunAdapter', () => {
 
   test('send() uses fromEmail only when fromName is not set', async () => {
     const configNoName: MailgunConfig = {
-      apiKey: 'key-test123',
+      apiKey: 'x',
       domain: 'mg.example.com',
       fromEmail: 'noreply@example.com',
     };
