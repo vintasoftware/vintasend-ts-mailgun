@@ -15,6 +15,7 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest run",
+    "test:sendgrid:sandbox": "vitest run src/__tests__/sendgrid-sandbox.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
