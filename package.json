@@ -24,7 +24,7 @@
   "author": "Gustavo Carvalho",
   "license": "MIT",
   "dependencies": {
-    "vintasend": "^1.0.0-alpha9"
+    "vintasend": "1.0.0-alpha10"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
