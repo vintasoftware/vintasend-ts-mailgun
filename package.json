@@ -1,6 +1,6 @@
 {
   "name": "vintasend-mailgun",
-  "version": "1.0.0-alpha15",
+  "version": "1.0.0-alpha16",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vintasoftware/vintasend-ts-mailgun.git"
@@ -24,7 +24,7 @@
   "author": "Gustavo Carvalho",
   "license": "MIT",
   "dependencies": {
-    "vintasend": "1.0.0-alpha15"
+    "vintasend": "1.0.0-alpha16"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
